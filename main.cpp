@@ -9,12 +9,12 @@
 *
 *   1. IDAC as current source: Channel A is configured as current source. 
 *      The current increases when a switch is pressed. Once the output reaches
-*	   its maximum value, it resets to zero and starts to increase the value 
-*	   again. If switch is not pressed, it holds the last value.
+*      its maximum value, it resets to zero and starts to increase the value 
+*      again. If switch is not pressed, it holds the last value.
 *
 *   2. IDAC as current sink: Channel B is configured for sinking current and 
-*	   used for driving an LED. Firmware controls the sinking current to toggle
-*	   the led every second. 
+*      used for driving an LED. Firmware controls the sinking current to toggle
+*      the led every second. 
 * 
 * Related Document: README.md
 *
@@ -69,17 +69,17 @@
 * Global constants
 ********************************************************************************/
 #define CSD_HW (CSD0)
-#define CURRENT_MIN_VALUE		(0)				/* in nanoamperes */
-#define CURRENT_MAX_VALUE		(600000)		/* in nanoamperes */
-#define CURRENT_INCREMENT_VALUE	(10000)			/* in nanoamperes */
-#define LED_ON_CURRENT			(-600000)		/* in nanoamperes */
-#define SWITCH_POLLING_DELAY	(50)			/* in milliseconds */
-#define SWITCH_DEBOUNCE_DELAY	(50)			/* in milliseconds */
-#define LED_TOGGLE_DELAY		(1)				/* in seconds */
-#define CPU_CLK					(100000000u)	/* in Hz. This value should match
-												 * with the CLK_FAST.
-												 */
-#define BUTTON_PRESSED			(0u)
+#define CURRENT_MIN_VALUE       (0)             /* in nanoamperes */
+#define CURRENT_MAX_VALUE       (600000)        /* in nanoamperes */
+#define CURRENT_INCREMENT_VALUE (10000)         /* in nanoamperes */
+#define LED_ON_CURRENT          (-600000)       /* in nanoamperes */
+#define SWITCH_POLLING_DELAY    (50)            /* in milliseconds */
+#define SWITCH_DEBOUNCE_DELAY   (50)            /* in milliseconds */
+#define LED_TOGGLE_DELAY        (1)             /* in seconds */
+#define CPU_CLK                 (100000000u)    /* in Hz. This value should match
+                                                 * with the CLK_FAST.
+                                                 */
+#define BUTTON_PRESSED          (0u)
 
 
 /*******************************************************************************
@@ -100,31 +100,31 @@ cy_stc_csdidac_context_t csdidac_context;
 
 cy_stc_csd_context_t csd_context = 
 {
-	.lockKey = CY_CSD_NONE_KEY,
+    .lockKey = CY_CSD_NONE_KEY,
 };
 
 static const cy_stc_csdidac_pin_t csdidac_a_pin = 
 {
-	.ioPcPtr = GPIO_PRT10,
-	.pin = 0u,
+    .ioPcPtr = GPIO_PRT10,
+    .pin = 0u,
 };
 
 static const cy_stc_csdidac_pin_t csdidac_b_pin = 
 {
-	.ioPcPtr = GPIO_PRT13,
-	.pin = 7u,
+    .ioPcPtr = GPIO_PRT13,
+    .pin = 7u,
 };
 
 const cy_stc_csdidac_config_t csdidac_config = 
 {
-	.base = CSD_HW,
-	.csdCxtPtr = &csd_context,
-	.configA = CY_CSDIDAC_GPIO,
-	.configB = CY_CSDIDAC_GPIO,
-	.ptrPinA = (const cy_stc_csdidac_pin_t *) &csdidac_a_pin,
-	.ptrPinB = (const cy_stc_csdidac_pin_t *) &csdidac_b_pin,
-	.cpuClk = CPU_CLK,
-	.csdInitTime = 25u,
+    .base = CSD_HW,
+    .csdCxtPtr = &csd_context,
+    .configA = CY_CSDIDAC_GPIO,
+    .configB = CY_CSDIDAC_GPIO,
+    .ptrPinA = (const cy_stc_csdidac_pin_t *) &csdidac_a_pin,
+    .ptrPinB = (const cy_stc_csdidac_pin_t *) &csdidac_b_pin,
+    .cpuClk = CPU_CLK,
+    .csdInitTime = 25u,
 };
 
 
@@ -139,35 +139,35 @@ const cy_stc_csdidac_config_t csdidac_config =
 int main(void)
 {    
     /* Variable used for storing CSDADC API return result */
-	cy_en_csdidac_status_t status;
+    cy_en_csdidac_status_t status;
 
     config_clock();
-	config_routing();
-	
-	/* Configure the GPIO input pin */
-	button.mode(PullUp);
+    config_routing();
+    
+    /* Configure the GPIO input pin */
+    button.mode(PullUp);
 
-	/* \x1b[2J\x1b[;H - ANSI ESC sequence for clear screen */
-	printf("\x1b[2J\x1b[;H");
-	printf("CSDIDAC Code Example\r\n\n");
+    /* \x1b[2J\x1b[;H - ANSI ESC sequence for clear screen */
+    printf("\x1b[2J\x1b[;H");
+    printf("CSDIDAC Code Example\r\n\n");
 
-	/* Initialize CSDIDAC */
-	status = Cy_CSDIDAC_Init(&csdidac_config, &csdidac_context);
-	check_status("CSDIDAC initialization failed", status);
+    /* Initialize CSDIDAC */
+    status = Cy_CSDIDAC_Init(&csdidac_config, &csdidac_context);
+    check_status("CSDIDAC initialization failed", status);
 
-	/* Create a thread to blink LED using IDAC in sink mode */
-	Thread thread_sink(osPriorityNormal, OS_STACK_SIZE, NULL, "CSDIDAC Sink");
-	
-	/* Create a thread to check the switch state and change the IDAC source 
-	 * current.
+    /* Create a thread to blink LED using IDAC in sink mode */
+    Thread thread_sink(osPriorityNormal, OS_STACK_SIZE, NULL, "CSDIDAC Sink");
+    
+    /* Create a thread to check the switch state and change the IDAC source 
+     * current.
      */
-	Thread thread_source(osPriorityNormal, OS_STACK_SIZE, NULL, "CSDIDAC Source");
-	
-	/* Start threads */
-	thread_sink.start(csdidac_sink);
-	thread_source.start(csdidac_source);
-	
-	wait(osWaitForever);
+    Thread thread_source(osPriorityNormal, OS_STACK_SIZE, NULL, "CSDIDAC Source");
+    
+    /* Start threads */
+    thread_sink.start(csdidac_sink);
+    thread_source.start(csdidac_source);
+    
+    wait(osWaitForever);
 }
 
 
@@ -181,36 +181,36 @@ int main(void)
 *****************************************************************************/
 static void csdidac_source(void)
 {
-	static int32_t current_value = CURRENT_MIN_VALUE;
-	cy_en_csdidac_status_t status;
-	
-	while(true)
-	{
-		if(BUTTON_PRESSED == button)
-		{
-			wait_ms(SWITCH_DEBOUNCE_DELAY);
-			
-			if(BUTTON_PRESSED == button)
-			{
-				status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_A, current_value,
-					&csdidac_context);
-				
-				check_status("Unable to set source current", status);
-				
-				printf("CSDIDAC is configured for sourcing current: %ld nA\r\n", 
-					current_value);
-					
-				current_value += CURRENT_INCREMENT_VALUE;
-			
-				if (current_value > CURRENT_MAX_VALUE)
-				{
-					current_value = CURRENT_MIN_VALUE;
-				}
-			}
-		}
-		
-		wait_ms(SWITCH_POLLING_DELAY);
-	}
+    static int32_t current_value = CURRENT_MIN_VALUE;
+    cy_en_csdidac_status_t status;
+    
+    while(true)
+    {
+        if(BUTTON_PRESSED == button)
+        {
+            wait_ms(SWITCH_DEBOUNCE_DELAY);
+            
+            if(BUTTON_PRESSED == button)
+            {
+                status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_A, current_value,
+                    &csdidac_context);
+                
+                check_status("Unable to set source current", status);
+                
+                printf("CSDIDAC is configured for sourcing current: %ld nA\r\n", 
+                    current_value);
+                    
+                current_value += CURRENT_INCREMENT_VALUE;
+            
+                if (current_value > CURRENT_MAX_VALUE)
+                {
+                    current_value = CURRENT_MIN_VALUE;
+                }
+            }
+        }
+        
+        wait_ms(SWITCH_POLLING_DELAY);
+    }
 }
 
 /*****************************************************************************
@@ -222,31 +222,31 @@ static void csdidac_source(void)
 *****************************************************************************/
 static void csdidac_sink(void)
 {
-	cy_en_csdidac_status_t status;
-	static bool led_on = true;
-	
-	while (true)
-	{
-		if(led_on)
-		{	
-			/* Turns LED on */
-			status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_B,
-				LED_ON_CURRENT, &csdidac_context);
-				
-			check_status("Unable to set sink current", status);
-		}
-		else
-		{
-			/* Turns LED off  */
-			status = Cy_CSDIDAC_OutputDisable(CY_CSDIDAC_B,
-				&csdidac_context);
-			
-			check_status("Disable channel B command failed", status);
-		}
-		
-		led_on = !led_on;
-		wait(LED_TOGGLE_DELAY);
-	}
+    cy_en_csdidac_status_t status;
+    static bool led_on = true;
+    
+    while (true)
+    {
+        if(led_on)
+        {   
+            /* Turns LED on */
+            status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_B,
+                LED_ON_CURRENT, &csdidac_context);
+                
+            check_status("Unable to set sink current", status);
+        }
+        else
+        {
+            /* Turns LED off  */
+            status = Cy_CSDIDAC_OutputDisable(CY_CSDIDAC_B,
+                &csdidac_context);
+            
+            check_status("Disable channel B command failed", status);
+        }
+        
+        led_on = !led_on;
+        wait(LED_TOGGLE_DELAY);
+    }
 }
 
 
@@ -259,14 +259,14 @@ static void csdidac_sink(void)
 *****************************************************************************/
 static void config_routing(void)
 {
-	HSIOM->AMUX_SPLIT_CTL[5] = HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SL_Msk |
-		HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SR_Msk |
-		HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SL_Msk |
-		HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SR_Msk;
-	HSIOM->AMUX_SPLIT_CTL[6] = HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SL_Msk |
-		HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SR_Msk |
-		HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SL_Msk |
-		HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SR_Msk;
+    HSIOM->AMUX_SPLIT_CTL[5] = HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SL_Msk |
+        HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SR_Msk |
+        HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SL_Msk |
+        HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SR_Msk;
+    HSIOM->AMUX_SPLIT_CTL[6] = HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SL_Msk |
+        HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SR_Msk |
+        HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SL_Msk |
+        HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SR_Msk;
 }
 
 
@@ -280,8 +280,8 @@ static void config_routing(void)
 static void config_clock(void)
 {
     Cy_SysClk_PeriphDisableDivider(CY_SYSCLK_DIV_8_BIT, 0U);
-	Cy_SysClk_PeriphSetDivider(CY_SYSCLK_DIV_8_BIT, 0U, 0U);
-	Cy_SysClk_PeriphEnableDivider(CY_SYSCLK_DIV_8_BIT, 0U);
+    Cy_SysClk_PeriphSetDivider(CY_SYSCLK_DIV_8_BIT, 0U, 0U);
+    Cy_SysClk_PeriphEnableDivider(CY_SYSCLK_DIV_8_BIT, 0U);
     Cy_SysClk_PeriphAssignDivider(PCLK_CSD_CLOCK, CY_SYSCLK_DIV_8_BIT, 0U);
 }
 
@@ -290,7 +290,7 @@ static void config_clock(void)
 * Function Name: check_status()
 ****************************************************************************//**
 * Summary:
-*	Asserts the non-zero status and prints the message.
+*   Asserts the non-zero status and prints the message.
 *
 * Parameters:
 *   char *message : message to print if status is non-zero.
@@ -301,8 +301,8 @@ static inline void check_status(const char *message, uint32_t status)
 {
     if(0u != status)
     {
-    	printf("[Error] : %s Error Code: 0x%08lX\r\n", message, status);
-		while(1);
+        printf("[Error] : %s Error Code: 0x%08lX\r\n", message, status);
+        while(1);
     }
 }
 

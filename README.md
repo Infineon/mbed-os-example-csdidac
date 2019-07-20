@@ -115,7 +115,7 @@ static const cy_stc_csdidac_pin_t csdidac_b_pin =
 
 # Reference
 
-- [CSDIDAC Middleware API Reference Guide](https://cypresssemiconductorco.github.io/middleware-csdidac/csdidac_api_reference_manual/html/index.html)
+- [CSDIDAC Middleware API Reference Guide](https://cypresssemiconductorco.github.io/csdidac/csdidac_api_reference_manual/html/index.html)
 - [ModusToolbox IDE User Guide](https://www.cypress.com/ModusToolboxUserGuide)
 - [CY8CPROTO-062-4343W PSoC 6 Wi-Fi BT Prototyping kit](http://www.cypress.com/documentation/development-kitsboards/cy8cproto-063-4343w)
 - [CY8CKIT-062-WiFi-BT PSoC 6 WiFi-BT Pioneer Kit](http://www.cypress.com/documentation/development-kitsboards/psoc-6-wifi-bt-pioneer-kit)
