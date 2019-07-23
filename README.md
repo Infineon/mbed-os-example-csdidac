@@ -28,7 +28,7 @@ Additional PSoC 6 MCU-related code examples are available in other repos. See al
     cd mbed-os-example-csdidac
    ```
    
-3. Plug in the CY8CPROTO_062_4343W kit and ensure that the kit is in DAPLink mode to allow programming from Mbed CLI. See [https://github.com/cypresssemiconductorco/Firmware-loader](https://github.com/cypresssemiconductorco/Firmware-loader) for more information on how to switch mode. 
+3. Plug in the CY8CPROTO-062-4343W kit. Ensure that the kit has the latest version of KitProg3 firmware and is in DAPLink mode to allow programming from Mbed CLI. See [https://github.com/cypresssemiconductorco/Firmware-loader](https://github.com/cypresssemiconductorco/Firmware-loader) for more information on how to update the firmware and switch to DAPLink mode.
 
 4. Compile the example and program.
 
@@ -54,15 +54,15 @@ Additional PSoC 6 MCU-related code examples are available in other repos. See al
 6. Place a resistor across Pin 10[0] and measure the voltage across the resistor to find out the current value. 
 
 7. Press user button (SW2) to increase the source current. When the user button is pressed, the terminal application should also show the current value the IDAC is configured for.
-	
-	```
-	CSDIDAC Code Example
 
-	CSDIDAC is configured for sourcing current: 0 nA
-	CSDIDAC is configured for sourcing current: 10000 nA
-	CSDIDAC is configured for sourcing current: 20000 nA
-	CSDIDAC is configured for sourcing current: 30000 nA
-	```
+  ```
+  CSDIDAC Code Example
+  
+  CSDIDAC is configured for sourcing current: 0 nA
+  CSDIDAC is configured for sourcing current: 10000 nA
+  CSDIDAC is configured for sourcing current: 20000 nA
+  CSDIDAC is configured for sourcing current: 30000 nA
+  ```
 
 # How to modify the CSDIDAC pins for this project
 
