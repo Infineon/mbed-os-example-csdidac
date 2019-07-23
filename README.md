@@ -14,7 +14,7 @@ Additional PSoC 6 MCU-related code examples are available in other repos. See al
 - [CY8CKIT-062-WiFi-BT PSoC 6 WiFi-BT Pioneer Kit](http://www.cypress.com/documentation/development-kitsboards/psoc-6-wifi-bt-pioneer-kit) (CY8CKIT_062_WIFI_BT)
 - [CY8CKIT-062-BLE PSoC 6 BLE Pioneer Kit](http://www.cypress.com/documentation/development-kitsboards/psoc-6-ble-pioneer-kit) (CY8CKIT_062_BLE)
 
-# Instructions to run the CapSense code example
+# Instructions to run the CSDIDAC code example
 
 1. Import the code example.
    
@@ -28,7 +28,7 @@ Additional PSoC 6 MCU-related code examples are available in other repos. See al
     cd mbed-os-example-csdidac
    ```
    
-3. Plug in the CY8CPROTO_062_4343W kit and ensure that the kit is in DAPLink mode to allow programming from Mbed CLI. See the *Switch Kit to DAPLink Mode* section in [ModusToolbox IDE User Guide](https://www.cypress.com/ModusToolboxUserGuide). 
+3. Plug in the CY8CPROTO_062_4343W kit and ensure that the kit is in DAPLink mode to allow programming from Mbed CLI. See [https://github.com/cypresssemiconductorco/Firmware-loader](https://github.com/cypresssemiconductorco/Firmware-loader) for more information on how to switch mode. 
 
 4. Compile the example and program.
 
