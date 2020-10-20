@@ -18,10 +18,6 @@
 * 
 * Related Document: README.md
 *
-* Supported Kits (Target Names): 
-*   CY8CKIT-062-BLE PSoC 6 BLE Pioneer Kit (CY8CKIT_062_BLE)
-*   CY8CKIT-062-WiFi-BT PSoC 6 WiFi-BT Pioneer Kit (CY8CKIT_062_WIFI_BT)
-*   CY8CPROTO-062-4343W PSoC 6 Wi-Fi BT Prototyping Kit (CY8CPROTO_062_4343W)
 *
 *******************************************************************************
 * Copyright (2019), Cypress Semiconductor Corporation. All rights reserved.
@@ -55,7 +51,6 @@
 * indemnify Cypress against all liability.
 *******************************************************************************/
 
-
 /*******************************************************************************
 * Header files including
 ********************************************************************************/
@@ -63,70 +58,36 @@
 #include "cy_pdl.h"
 #include "cy_device_headers.h"
 #include "cy_csdidac.h"
-
+#include "cycfg.h"
+#include "cybsp.h"
 
 /*******************************************************************************
 * Global constants
 ********************************************************************************/
-#define CSD_HW (CSD0)
-#define CURRENT_MIN_VALUE       (0)             /* in nanoamperes */
-#define CURRENT_MAX_VALUE       (600000)        /* in nanoamperes */
-#define CURRENT_INCREMENT_VALUE (10000)         /* in nanoamperes */
-#define LED_ON_CURRENT          (-600000)       /* in nanoamperes */
-#define SWITCH_POLLING_DELAY    (50)            /* in milliseconds */
-#define SWITCH_DEBOUNCE_DELAY   (50)            /* in milliseconds */
-#define LED_TOGGLE_DELAY        (1)             /* in seconds */
-#define CPU_CLK                 (100000000u)    /* in Hz. This value should match
-                                                 * with the CLK_FAST.
-                                                 */
-#define BUTTON_PRESSED          (0u)
-
+#define CURRENT_MIN_VALUE (0)           /* in nanoamperes */
+#define CURRENT_MAX_VALUE (600000)      /* in nanoamperes */
+#define CURRENT_INCREMENT_VALUE (10000) /* in nanoamperes */
+#define LED_ON_CURRENT (-600000)        /* in nanoamperes */
+#define SWITCH_POLLING_DELAY (50000)    /* in microseconds */
+#define SWITCH_DEBOUNCE_DELAY (50000)   /* in microseconds */
+#define LED_TOGGLE_DELAY (1s)           /* in seconds */
+#define CPU_CLK (100000000u)            /* in Hz. This value should match \
+                                         * with the CLK_FAST.             \
+                                         */
+#define BUTTON_PRESSED (0u)
 
 /*******************************************************************************
 * Function Prototypes
 ********************************************************************************/
-static void config_routing(void);
-static void config_clock(void);
 static void csdidac_source(void);
 static void csdidac_sink(void);
 static void check_status(const char *message, uint32_t status);
-
 
 /*******************************************************************************
 * Global variables
 *******************************************************************************/
 DigitalIn button(USER_BUTTON);
 cy_stc_csdidac_context_t csdidac_context;
-
-cy_stc_csd_context_t csd_context = 
-{
-    .lockKey = CY_CSD_NONE_KEY,
-};
-
-static const cy_stc_csdidac_pin_t csdidac_a_pin = 
-{
-    .ioPcPtr = GPIO_PRT10,
-    .pin = 0u,
-};
-
-static const cy_stc_csdidac_pin_t csdidac_b_pin = 
-{
-    .ioPcPtr = GPIO_PRT13,
-    .pin = 7u,
-};
-
-const cy_stc_csdidac_config_t csdidac_config = 
-{
-    .base = CSD_HW,
-    .csdCxtPtr = &csd_context,
-    .configA = CY_CSDIDAC_GPIO,
-    .configB = CY_CSDIDAC_GPIO,
-    .ptrPinA = (const cy_stc_csdidac_pin_t *) &csdidac_a_pin,
-    .ptrPinB = (const cy_stc_csdidac_pin_t *) &csdidac_b_pin,
-    .cpuClk = CPU_CLK,
-    .csdInitTime = 25u,
-};
-
 
 /*****************************************************************************
 * Function Name: main()
@@ -137,13 +98,11 @@ const cy_stc_csdidac_config_t csdidac_config =
 *
 *****************************************************************************/
 int main(void)
-{    
+{
     /* Variable used for storing CSDADC API return result */
     cy_en_csdidac_status_t status;
 
-    config_clock();
-    config_routing();
-    
+    cybsp_init();
     /* Configure the GPIO input pin */
     button.mode(PullUp);
 
@@ -152,24 +111,27 @@ int main(void)
     printf("CSDIDAC Code Example\r\n\n");
 
     /* Initialize CSDIDAC */
-    status = Cy_CSDIDAC_Init(&csdidac_config, &csdidac_context);
+    status = Cy_CSDIDAC_Init(&CSDIDAC_csdidac_config, &csdidac_context);
     check_status("CSDIDAC initialization failed", status);
 
     /* Create a thread to blink LED using IDAC in sink mode */
     Thread thread_sink(osPriorityNormal, OS_STACK_SIZE, NULL, "CSDIDAC Sink");
-    
+
     /* Create a thread to check the switch state and change the IDAC source 
      * current.
      */
     Thread thread_source(osPriorityNormal, OS_STACK_SIZE, NULL, "CSDIDAC Source");
-    
+
     /* Start threads */
     thread_sink.start(csdidac_sink);
     thread_source.start(csdidac_source);
-    
-    wait(osWaitForever);
-}
 
+    while (true)
+    {
+        ThisThread::sleep_for(1000s);
+    }
+
+}
 
 /*****************************************************************************
 * Function Name: csdidac_source()
@@ -183,34 +145,37 @@ static void csdidac_source(void)
 {
     static int32_t current_value = CURRENT_MIN_VALUE;
     cy_en_csdidac_status_t status;
-    
-    while(true)
+
+    while (true)
     {
-        if(BUTTON_PRESSED == button)
+        if (BUTTON_PRESSED == button)
         {
-            wait_ms(SWITCH_DEBOUNCE_DELAY);
-            
-            if(BUTTON_PRESSED == button)
+            wait_us(SWITCH_DEBOUNCE_DELAY);
+
+            if (BUTTON_PRESSED == button)
             {
                 status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_A, current_value,
-                    &csdidac_context);
-                
+                                                 &csdidac_context);
+
                 check_status("Unable to set source current", status);
-                
-                printf("CSDIDAC is configured for sourcing current: %ld nA\r\n", 
-                    current_value);
-                    
+
+                printf("CSDIDAC is configured for sourcing current: %ld nA\r\n",
+                       (unsigned long)current_value);
+
                 current_value += CURRENT_INCREMENT_VALUE;
-            
+
                 if (current_value > CURRENT_MAX_VALUE)
                 {
                     current_value = CURRENT_MIN_VALUE;
                 }
+
             }
+
         }
-        
-        wait_ms(SWITCH_POLLING_DELAY);
+
+        wait_us(SWITCH_POLLING_DELAY);
     }
+
 }
 
 /*****************************************************************************
@@ -224,71 +189,36 @@ static void csdidac_sink(void)
 {
     cy_en_csdidac_status_t status;
     static bool led_on = true;
-    
+
     while (true)
     {
-        if(led_on)
-        {   
+        if (led_on)
+        {
             /* Turns LED on */
             status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_B,
-                LED_ON_CURRENT, &csdidac_context);
-                
+                                             LED_ON_CURRENT, &csdidac_context);
+
             check_status("Unable to set sink current", status);
         }
         else
         {
             /* Turns LED off  */
             status = Cy_CSDIDAC_OutputDisable(CY_CSDIDAC_B,
-                &csdidac_context);
-            
+                                              &csdidac_context);
+
             check_status("Disable channel B command failed", status);
         }
-        
+
         led_on = !led_on;
-        wait(LED_TOGGLE_DELAY);
+        ThisThread::sleep_for(LED_TOGGLE_DELAY);
     }
+
 }
-
-
-/*****************************************************************************
-* Function Name: config_routing()
-******************************************************************************
-* Summary:
-*   Configures the AMUX bus segment.
-*
-*****************************************************************************/
-static void config_routing(void)
-{
-    HSIOM->AMUX_SPLIT_CTL[5] = HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SL_Msk |
-        HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SR_Msk |
-        HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SL_Msk |
-        HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SR_Msk;
-    HSIOM->AMUX_SPLIT_CTL[6] = HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SL_Msk |
-        HSIOM_AMUX_SPLIT_CTL_SWITCH_AA_SR_Msk |
-        HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SL_Msk |
-        HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SR_Msk;
-}
-
-
-/*****************************************************************************
-* Function Name: config_routing()
-******************************************************************************
-* Summary:
-*   Configures the peripheral clock divider for CSDIDAC. 
-*
-*****************************************************************************/
-static void config_clock(void)
-{
-    Cy_SysClk_PeriphDisableDivider(CY_SYSCLK_DIV_8_BIT, 0U);
-    Cy_SysClk_PeriphSetDivider(CY_SYSCLK_DIV_8_BIT, 0U, 0U);
-    Cy_SysClk_PeriphEnableDivider(CY_SYSCLK_DIV_8_BIT, 0U);
-    Cy_SysClk_PeriphAssignDivider(PCLK_CSD_CLOCK, CY_SYSCLK_DIV_8_BIT, 0U);
-}
-
 
 /*******************************************************************************
 * Function Name: check_status()
-****************************************************************************//**
+****************************************************************************/
+/**
 * Summary:
 *   Asserts the non-zero status and prints the message.
 *
@@ -299,11 +229,13 @@ static void config_clock(void)
 *******************************************************************************/
 static inline void check_status(const char *message, uint32_t status)
 {
-    if(0u != status)
+    if (0u != status)
     {
-        printf("[Error] : %s Error Code: 0x%08lX\r\n", message, status);
-        while(1);
+        printf("[Error] : %s Error Code: 0x%08lX\r\n", message, (unsigned long)status);
+        while (1u){}
+            
     }
+    
 }
 
 /* [] END OF FILE */
